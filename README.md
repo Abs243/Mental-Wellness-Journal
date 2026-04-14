@@ -79,6 +79,45 @@ npm run dev
 
 Frontend runs on `http://localhost:3000` and backend runs on `http://localhost:5001`.
 
+## PM2 Production Setup
+
+Use `pm2` when you deploy the backend to an AWS EC2 instance or another VM-based server.
+
+### 1. Install PM2 on the server
+
+```bash
+npm install -g pm2
+```
+
+### 2. Start the backend with PM2
+
+```bash
+cd backend
+pm2 start ecosystem.config.js
+```
+
+### 3. Restart after updates
+
+```bash
+cd backend
+pm2 restart ecosystem.config.js --update-env
+```
+
+### 4. Save the running process list
+
+```bash
+pm2 save
+```
+
+### 5. Useful PM2 commands
+
+```bash
+pm2 list
+pm2 logs mental-wellness-journal-api
+pm2 restart mental-wellness-journal-api
+pm2 stop mental-wellness-journal-api
+```
+
 ## API Endpoints
 
 ### Authentication
@@ -153,9 +192,25 @@ Current pipeline steps:
 - Install root, backend, and frontend dependencies
 - Build the React frontend
 - Run frontend tests
-- Keep a deployment placeholder for production deployment
+- Deploy the project to AWS EC2 over SSH
+- Restart the backend service with PM2
 
-You can connect the deployment step to platforms like Render, Railway, Azure App Service, or AWS once hosting details are chosen.
+### Required GitHub Secrets for EC2 deployment
+
+Add these repository secrets before using the deployment job:
+
+- `EC2_HOST`
+- `EC2_USERNAME`
+- `EC2_SSH_KEY`
+- `EC2_PROJECT_PATH`
+
+### Example EC2 deployment flow
+
+1. Push code to `main`
+2. GitHub Actions connects to the EC2 server
+3. The workflow runs `git pull origin main`
+4. Dependencies are installed with `npm ci`
+5. The backend is restarted using `pm2 startOrRestart ecosystem.config.js --update-env`
 
 ## Assessment Alignment
 
