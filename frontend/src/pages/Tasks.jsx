@@ -4,10 +4,14 @@ import TaskForm from '../components/TaskForm';
 import TaskList from '../components/TaskList';
 import { useAuth } from '../context/AuthContext';
 
+const defaultFilters = { mood: 'All', from: '', to: '' };
+
 const Tasks = () => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [editingTask, setEditingTask] = useState(null);
+  const [loadingEntries, setLoadingEntries] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [summary, setSummary] = useState({
     totalEntries: 0,
     averageStress: 0,
@@ -15,22 +19,24 @@ const Tasks = () => {
     latestEntry: null,
     moodBreakdown: {},
   });
-  const [filters, setFilters] = useState({ mood: 'All', from: '', to: '' });
+  const [filters, setFilters] = useState(defaultFilters);
+  const [appliedFilters, setAppliedFilters] = useState(defaultFilters);
 
   const fetchTasks = useCallback(async () => {
     try {
+      setLoadingEntries(true);
       const params = {};
 
-      if (filters.mood !== 'All') {
-        params.mood = filters.mood;
+      if (appliedFilters.mood !== 'All') {
+        params.mood = appliedFilters.mood;
       }
 
-      if (filters.from) {
-        params.from = filters.from;
+      if (appliedFilters.from) {
+        params.from = appliedFilters.from;
       }
 
-      if (filters.to) {
-        params.to = filters.to;
+      if (appliedFilters.to) {
+        params.to = appliedFilters.to;
       }
 
       const response = await axiosInstance.get('/api/journals', {
@@ -39,9 +45,11 @@ const Tasks = () => {
       });
       setTasks(response.data);
     } catch (error) {
-      alert('Failed to fetch journal entries.');
+      alert(error.response?.data?.message || 'Failed to fetch journal entries.');
+    } finally {
+      setLoadingEntries(false);
     }
-  }, [filters, user]);
+  }, [appliedFilters, user]);
 
   const fetchSummary = useCallback(async () => {
     try {
@@ -65,6 +73,46 @@ const Tasks = () => {
       fetchSummary();
     }
   }, [fetchSummary, user]);
+
+  const handleSearch = async () => {
+    const nextFilters = { ...filters };
+    setAppliedFilters(nextFilters);
+
+    try {
+      setLoadingEntries(true);
+      const params = {};
+
+      if (nextFilters.mood !== 'All') {
+        params.mood = nextFilters.mood;
+      }
+
+      if (nextFilters.from) {
+        params.from = nextFilters.from;
+      }
+
+      if (nextFilters.to) {
+        params.to = nextFilters.to;
+      }
+
+      const response = await axiosInstance.get('/api/journals', {
+        params,
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+
+      setTasks(response.data);
+      setHasSearched(true);
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to fetch journal entries.');
+    } finally {
+      setLoadingEntries(false);
+    }
+  };
+
+  const handleClearFilters = () => {
+    setFilters(defaultFilters);
+    setAppliedFilters(defaultFilters);
+    setHasSearched(false);
+  };
 
   return (
     <div className="min-h-screen bg-transparent px-4 py-8 md:px-6">
@@ -141,6 +189,57 @@ const Tasks = () => {
                   />
                 </label>
               </div>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={handleSearch}
+                  className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                >
+                  {loadingEntries ? 'Searching...' : 'Search'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+                >
+                  Clear
+                </button>
+              </div>
+              <div className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                {loadingEntries && 'Searching journal entries...'}
+                {!loadingEntries && hasSearched && tasks.length > 0 && `Showing ${tasks.length} matching journal entr${tasks.length === 1 ? 'y' : 'ies'}.`}
+                {!loadingEntries && hasSearched && tasks.length === 0 && 'No matching journal entries found for the selected filters.'}
+                {!loadingEntries && !hasSearched && 'Choose a mood or date range, then click Search to filter your journal.'}
+              </div>
+              {!loadingEntries && hasSearched && tasks.length > 0 && (
+                <div className="mt-4 space-y-3">
+                  {tasks.slice(0, 3).map((task) => (
+                    <div key={task._id} className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <h3 className="text-base font-semibold text-slate-900">{task.title}</h3>
+                          <p className="mt-1 text-sm text-slate-500">
+                            {new Date(task.entryDate).toLocaleDateString()} · {task.mood}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditingTask(task)}
+                          className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+                        >
+                          Open
+                        </button>
+                      </div>
+                      <p className="mt-3 line-clamp-3 text-sm text-slate-600">{task.note}</p>
+                    </div>
+                  ))}
+                  {tasks.length > 3 && (
+                    <p className="text-sm text-slate-500">
+                      Showing the first 3 matches here. Scroll down to see the full filtered journal list.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="rounded-[2rem] border border-white/60 bg-white/85 p-6 shadow-xl shadow-slate-900/5">

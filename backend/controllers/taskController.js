@@ -28,6 +28,24 @@ const normaliseFeelings = (feelings = []) =>
         .slice(0, 6)
     : [];
 
+const parseDateBoundary = (value, boundary) => {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  if (boundary === 'start') {
+    date.setHours(0, 0, 0, 0);
+  }
+
+  if (boundary === 'end') {
+    date.setHours(23, 59, 59, 999);
+  }
+
+  return date;
+};
+
 const getTasks = async (req, res) => {
   try {
     const query = { userId: req.user.id };
@@ -40,11 +58,27 @@ const getTasks = async (req, res) => {
       query.entryDate = {};
 
       if (req.query.from) {
-        query.entryDate.$gte = new Date(req.query.from);
+        const fromDate = parseDateBoundary(req.query.from, 'start');
+
+        if (!fromDate) {
+          return res.status(400).json({ message: 'Invalid from date' });
+        }
+
+        query.entryDate.$gte = fromDate;
       }
 
       if (req.query.to) {
-        query.entryDate.$lte = new Date(req.query.to);
+        const toDate = parseDateBoundary(req.query.to, 'end');
+
+        if (!toDate) {
+          return res.status(400).json({ message: 'Invalid to date' });
+        }
+
+        query.entryDate.$lte = toDate;
+      }
+
+      if (query.entryDate.$gte && query.entryDate.$lte && query.entryDate.$gte > query.entryDate.$lte) {
+        return res.status(400).json({ message: 'From date must be earlier than or equal to the to date' });
       }
     }
 
