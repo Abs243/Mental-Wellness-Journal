@@ -1,26 +1,176 @@
-**Task Manager Application Overview:The task manager application is designed to help users efficiently manage their tasks and responsibilities by providing a user-friendly interface for creating, viewing, updating, and deleting tasks. It includes essential features such as secure user authentication, allowing individuals to sign up and log in to their accounts, as well as profile management to update personal information. With built-in validation such as input field validation and email validation, the application ensures a seamless user experience while enhancing productivity and organization in both personal and professional settings. **
+# Mental Wellness Journal
 
-**This apps **contain** the following features:**
+Mental Wellness Journal is a full-stack MERN application that gives users a private digital space to track daily mood, reflect on thoughts, record wellbeing habits, and receive lightweight mental health recommendations in real time.
 
-* Signup
-* Login
-* Logout
-* Update profile
-* Add tasks
-* View tasks
-* Update tasks
-* Delete tasks
+## Project Overview
 
-**This **app**lication** is**almost **a** precompiled** app**. However, students will develop some features,**such as adding tasks, viewing tasks, updating tasks, and **deleting** tasks**. **Students** will interact with GitHub when they develop the features.**
+This project extends the starter authentication template into a real-world wellbeing platform. It demonstrates:
 
----
+- Backend development with Node.js, Express, and MongoDB
+- Frontend development with React.js and Tailwind CSS utilities
+- Authentication and authorisation using JWT
+- CRUD operations for journal entries
+- GitHub branching strategy and collaborative development workflow
+- CI/CD preparation using GitHub Actions
 
-**Prerequisite:** Please install the following software and create account in following web tools** **
+## Features
 
-* **Nodejs [**[https://nodejs.org/en](https://nodejs.org/en)]** **
-* **Git [**[https://git-scm.com/](https://git-scm.com/)]** **
-* **VS code editor** [[https://code.visualstudio.com/](https://code.visualstudio.com/)]** **
-* **MongoDB Account** [[https://account.mongodb.com/account/login](https://account.mongodb.com/account/login)]** - In tutorial, we have also showed how can you create account and database: follow step number 2.**
-* **GitHub Account** [[https://github.com/signup?source=login](https://github.com/signup?source=login)]** **
+- User registration and login
+- Protected profile management
+- Persistent authentication using local storage
+- Create, read, update, and delete private mental wellness journal entries
+- Mood tracking, feelings tags, sleep and stress monitoring
+- Auto-generated wellbeing recommendations based on entry data
+- Dashboard summary with latest insight and quick metrics
+- Entry filtering by mood and date range
 
----
+## Tech Stack
+
+- Frontend: React, React Router, Axios, Tailwind CSS
+- Backend: Node.js, Express.js, MongoDB, Mongoose, JWT, bcrypt
+- DevOps: GitHub, GitHub Actions
+
+## Folder Structure
+
+```text
+Mental-Wellness-Journal/
++-- backend/
++-- frontend/
++-- .github/workflows/
++-- package.json
++-- README.md
+```
+
+## Local Setup
+
+### 1. Install dependencies
+
+```bash
+npm run install-all
+```
+
+### 2. Configure environment variables
+
+Create these files from the provided examples:
+
+- `backend/.env.example` -> `backend/.env`
+- `frontend/.env.example` -> `frontend/.env`
+
+Backend variables:
+
+```env
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=replace_with_a_secure_secret
+PORT=5001
+CLIENT_URL=http://localhost:3000
+```
+
+Frontend variables:
+
+```env
+REACT_APP_API_URL=http://localhost:5001
+```
+
+### 3. Run the application
+
+```bash
+npm run dev
+```
+
+Frontend runs on `http://localhost:3000` and backend runs on `http://localhost:5001`.
+
+## API Endpoints
+
+### Authentication
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/profile`
+- `PUT /api/auth/profile`
+
+### Journal Entries
+
+- `GET /api/journals`
+- `GET /api/journals/summary`
+- `POST /api/journals`
+- `PUT /api/journals/:id`
+- `DELETE /api/journals/:id`
+
+## Journal Entry Data Model
+
+Each journal entry stores:
+
+- `title`
+- `note`
+- `mood`
+- `feelings[]`
+- `gratitude`
+- `selfCareActivity`
+- `sleepHours`
+- `stressLevel`
+- `entryDate`
+- `recommendation`
+
+## Authentication and Authorisation
+
+- Passwords are hashed with `bcrypt`
+- JWT tokens are issued on login and profile update
+- Protected routes use Bearer token middleware
+- Frontend private routes redirect unauthenticated users to `/login`
+- Journal reflections are private and scoped to the authenticated user only
+
+## GitHub Version Control and Branching Strategy
+
+Recommended branch model:
+
+- `main`: production-ready code
+- `develop`: integration branch for completed features
+- `feature/<feature-name>`: new features such as `feature/journal-crud`
+- `bugfix/<issue-name>`: defect fixes
+- `hotfix/<issue-name>`: urgent production fixes
+
+Suggested workflow:
+
+1. Create a new branch from `develop`
+2. Commit small focused changes
+3. Open a pull request into `develop`
+4. Run CI checks before merge
+5. Merge `develop` into `main` for releases
+
+Example commits:
+
+- `feat: add mental wellness journal CRUD`
+- `feat: protect profile and journal routes`
+- `ci: add github actions pipeline`
+- `docs: rewrite README for project delivery`
+
+## CI/CD Pipeline Setup
+
+The project includes a GitHub Actions workflow at `.github/workflows/ci-cd.yml`.
+
+Current pipeline steps:
+
+- Install root, backend, and frontend dependencies
+- Build the React frontend
+- Run frontend tests
+- Keep a deployment placeholder for production deployment
+
+You can connect the deployment step to platforms like Render, Railway, Azure App Service, or AWS once hosting details are chosen.
+
+## Assessment Alignment
+
+This implementation now covers the requested tasks:
+
+- Backend Development: CRUD endpoints, MongoDB models, protected APIs
+- Frontend Development: React pages, forms, dashboard, filtering, profile management
+- Authentication & Authorisation: JWT middleware, private routes, persistent sessions
+- GitHub Version Control & Branching Strategy: documented in README
+- CI/CD Pipeline Setup: GitHub Actions workflow added
+- README.md: rewritten with setup, architecture, and delivery guidance
+
+## Future Improvements
+
+- Add backend integration tests with a test database
+- Add admin or therapist review roles if the project scope expands
+- Add charts for mood trends over time
+- Add reminder notifications for daily check-ins
